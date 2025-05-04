@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   handleSettingsButton();
   handleSaveButton();
   handleLoginButton();
+  handlePrevButton();
 });
 
 function handleSettingsButton(){
@@ -30,27 +31,50 @@ function handleLoginButton() {
   const button = document.getElementById('loginButton');
   button.addEventListener('click', () => {
     chrome.storage.local.get(['clientId', 'redirectUrl'], (result) => {
-      console.log('read:');
-      console.log(result.clientId);
-      console.log(result.redirectUrl);
-      
       chrome.runtime.sendMessage(
         { 
-          type: 'authorize_spotify',
-          clientId: result.clientId,
-          redirectUrl: result.redirectUrl
+          type: 'spotifyAuthorize',
+          data: {
+            clientId: result.clientId,
+            redirectUrl: result.redirectUrl
+          }
         },
         (response) => {
-          if (chrome.runtime.lastError) {
-            console.error(chrome.runtime.lastError.message);
-          } else {
-            console.log('Received auth code:', response.code);
-            chrome.storage.local.set({ code: response.code });
-          }
+          console.log('Resp in popup: ' + response);
+          console.log(response);
+
+          // if (chrome.runtime.lastError) {
+          //   console.error(chrome.runtime.lastError.message);
+          // } else {
+          //   console.log('Received auth code:', response.code);
+          //   chrome.storage.local.set({ code: response.code });
+          // }
         }
       );
     });
   });
+}
+
+function handlePrevButton() {
+  const button = document.getElementById('prevButton');
+  button.addEventListener('click', () => {
+    chrome.storage.local.get(['accessToken'], (r) => {
+      fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${r.accessToken}`,
+        }
+      })
+      .then(response => response.json()) // Parse the response as JSON
+      .then(data => {
+        console.log(data); // Use the data from the response
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error); // Handle any errors
+      });
+    });
+  });
+    
 }
 
 function displayToggleNoneFlex(id) {
