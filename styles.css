@@ -1,0 +1,25 @@
+body {
+    width: 200px;
+    height: 200px;
+    padding-left: 10%;
+    padding-right: 10%;
+}
+
+#player {
+    display: flex;
+    justify-content: space-around;
+    padding-left: 5%;
+    padding-right: 5%;
+}
+
+#settings {
+    display: none;
+}
+
+#top {
+    padding-bottom: 10px;
+}
+
+#saveButton {
+    margin-bottom: 10px;
+}

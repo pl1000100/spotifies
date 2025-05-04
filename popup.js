@@ -1,46 +1,60 @@
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('settingsButton').addEventListener('click', async () => {
-    hiddenToggle("settings");
-  });
+  handleSettingsButton();
+  handleSaveButton();
+  handleLoginButton();
 });
 
-window.onSpotifyWebPlaybackSDKReady = () => {
-  const token = '';
-  const player = new Spotify.Player({
-      name: 'Web Playback SDK Quick Start Player',
-      getOAuthToken: cb => { cb(token); },
-      volume: 0.5
+function handleSettingsButton(){
+  document.getElementById('settingsButton').addEventListener('click', () => {
+    displayToggleNoneFlex('player');
+    displayToggleNoneFlex('settings');
+    chrome.storage.local.get(['clientId', 'redirectUrl'], (result) => {
+      const clientInput = document.getElementById('clientId').value = result.clientId;
+      const redirectInput = document.getElementById('redirectUrl').value = result.redirectUrl;
+
+    });
   });
-
-  // Ready
-  player.addListener('ready', ({ device_id }) => {
-      console.log('Ready with Device ID', device_id);
-  });
-
-  // Not Ready
-  player.addListener('not_ready', ({ device_id }) => {
-      console.log('Device ID has gone offline', device_id);
-  });
-
-  player.addListener('initialization_error', ({ message }) => {
-      console.error(message);
-  });
-
-  player.addListener('authentication_error', ({ message }) => {
-      console.error(message);
-  });
-
-  player.addListener('account_error', ({ message }) => {
-      console.error(message);
-  });
-
-  document.getElementById('togglePlay').onclick = function() {
-    player.togglePlay();
-  };
-
-  player.connect();
 }
 
-function hiddenToggle(id) {
-  document.getElementById(id).hidden = !document.getElementById(id).hidden;
+function handleSaveButton() {
+  const button = document.getElementById('saveButton');
+  button.addEventListener('click', () => {
+    const clientId = document.getElementById('clientId').value;
+    const redirectUrl = document.getElementById('redirectUrl').value;
+    chrome.storage.local.set({ clientId: clientId });
+    chrome.storage.local.set({ redirectUrl: redirectUrl });
+  });
+}
+
+function handleLoginButton() {
+  const button = document.getElementById('loginButton');
+  button.addEventListener('click', () => {
+    chrome.storage.local.get(['clientId', 'redirectUrl'], (result) => {
+      console.log('read:');
+      console.log(result.clientId);
+      console.log(result.redirectUrl);
+      
+      chrome.runtime.sendMessage(
+        { 
+          type: 'authorize_spotify',
+          clientId: result.clientId,
+          redirectUrl: result.redirectUrl
+        },
+        (response) => {
+          if (chrome.runtime.lastError) {
+            console.error(chrome.runtime.lastError.message);
+          } else {
+            console.log('Received auth code:', response.code);
+            chrome.storage.local.set({ code: response.code });
+          }
+        }
+      );
+    });
+  });
+}
+
+function displayToggleNoneFlex(id) {
+  const elem = document.getElementById(id);
+  const elemDisplay = window.getComputedStyle(elem).display;
+  elemDisplay === 'none' ? elem.style.display = 'flex' : elem.style.display = 'none';
 }

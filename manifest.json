@@ -4,7 +4,8 @@
     "version": "0.1",
     "description": "Chrome Extension Spotify Manager.",
     "permissions": [
-      "storage"
+      "storage",
+      "identity"
     ],
     "background": {
       "service_worker": "background.js"
@@ -12,6 +13,9 @@
     "action": {
       "default_popup": "popup.html"
     },
+    "externally_connectable": {
+    "matches": ["*://*.spotify.com/*"]
+  },
     "icons": {
       "16": "assets/icons/icon16.png",
       "48": "assets/icons/icon48.png",
