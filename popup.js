@@ -67,7 +67,10 @@ function handlePrevButton() {
   button.addEventListener('click', async () => {
     previousSong()
     .then(() =>  getPlaybackState())
-    .then((res) => handleSongData(res));
+    .then((res) => handleSongData(res))
+    .catch(error => {
+      console.error('Error fetching data:', error);
+    });
   });
 }
 
@@ -94,7 +97,10 @@ function handleNextButton() {
   button.addEventListener('click', async () => {
     nextSong()
     .then(() =>  getPlaybackState())
-    .then((res) => handleSongData(res));
+    .then((res) => handleSongData(res))
+    .catch(error => {
+      console.error('Error fetching data:', error);
+    });
   });
 }
 
