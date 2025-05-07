@@ -3,7 +3,6 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log(message);
   switch(message.type) {
     case 'spotifyAuthorize':
       handleSpotifyAuthorize(message.data);
@@ -12,7 +11,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     case 'spotifyCurrentSong':
       handleSpotifyCurrentSong(message.data);
     default:
-      console.log('This task type don\'t exist', message.type);
+      console.error('This task type don\'t exist', message.type);
       sendResponse({error: 'Wrong task type'});
       break;
   }
@@ -23,7 +22,6 @@ function handleSpotifyAuthorize(data) {
   const redirectUrl = data.redirectUrl;
   generateAccessCode(clientId, redirectUrl)
   .then((resp) => {
-    console.log('Access Code:', resp.accessCode);
     chrome.storage.local.set({codeVerifier: resp.codeVerifier});
     exchangeCodeForToken(resp.accessCode, redirectUrl, clientId, resp.codeVerifier)
   })
@@ -37,7 +35,7 @@ async function generateAccessCode(clientId, redirectUrl) {
   const hashed = await sha256(codeVerifier)
   const codeChallenge = base64encode(hashed);
   
-  const scopes = 'user-read-private user-read-email user-read-currently-playing';
+  const scopes = 'user-read-private user-read-email user-read-currently-playing user-modify-playback-state user-read-playback-state';
   const authUrl = `https://accounts.spotify.com/authorize` +
     `?client_id=${clientId}` +
     `&response_type=code` +
@@ -45,10 +43,6 @@ async function generateAccessCode(clientId, redirectUrl) {
     `&scope=${encodeURIComponent(scopes)}` +
     `&code_challenge_method=S256` +
     `&code_challenge=${encodeURIComponent(codeChallenge)}`;
-
-  console.log(authUrl);
-  console.log(clientId);
-  console.log(redirectUrl);
 
   return new Promise((resolve, reject) => {
     chrome.identity.launchWebAuthFlow(
@@ -63,8 +57,6 @@ async function generateAccessCode(clientId, redirectUrl) {
       } else {
         const url = new URL(redirectedTo);
         const code = url.searchParams.get('code');
-        console.log(code);
-        
         resolve({accessCode: code, codeVerifier});
       }
     }
@@ -99,8 +91,6 @@ const exchangeCodeForToken = (code, redirectUri, clientId, codeVerifier) => {
     if (data.error) {
       console.error('Token exchange error:', data.error, data.error_description);
     } else {
-      console.log('Access token:', data.access_token);
-      console.log('Refresh token:', data.refresh_token);
       chrome.storage.local.set({
         accessToken: data.access_token,
         refreshToken: data.refresh_token,

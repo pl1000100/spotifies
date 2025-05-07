@@ -1,9 +1,23 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    handleSongData(await getPlaybackState());
+  } catch {
+    login();
+  }
   handleSettingsButton();
   handleSaveButton();
   handleLoginButton();
   handlePrevButton();
+  handleNextButton();
+  handlePausePlayButton();
 });
+
+function handleSongData(playbackState) {
+  const title = document.getElementById('songTitle');
+  const author = document.getElementById('songAuthor');
+  title.innerText = playbackState.title;
+  author.innerText = playbackState.author;
+}
 
 function handleSettingsButton(){
   document.getElementById('settingsButton').addEventListener('click', () => {
@@ -30,7 +44,12 @@ function handleSaveButton() {
 function handleLoginButton() {
   const button = document.getElementById('loginButton');
   button.addEventListener('click', () => {
-    chrome.storage.local.get(['clientId', 'redirectUrl'], (result) => {
+    login()
+  });
+}
+
+function login() {
+  chrome.storage.local.get(['clientId', 'redirectUrl'], (result) => {
       chrome.runtime.sendMessage(
         { 
           type: 'spotifyAuthorize',
@@ -38,43 +57,128 @@ function handleLoginButton() {
             clientId: result.clientId,
             redirectUrl: result.redirectUrl
           }
-        },
-        (response) => {
-          console.log('Resp in popup: ' + response);
-          console.log(response);
-
-          // if (chrome.runtime.lastError) {
-          //   console.error(chrome.runtime.lastError.message);
-          // } else {
-          //   console.log('Received auth code:', response.code);
-          //   chrome.storage.local.set({ code: response.code });
-          // }
         }
       );
     });
-  });
 }
 
 function handlePrevButton() {
   const button = document.getElementById('prevButton');
-  button.addEventListener('click', () => {
+  button.addEventListener('click', async () => {
+    previousSong()
+    .then(() =>  getPlaybackState())
+    .then((res) => handleSongData(res));
+  });
+}
+
+function previousSong() {
+  return new Promise((resolve, reject) => { 
     chrome.storage.local.get(['accessToken'], (r) => {
-      fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+      fetch('https://api.spotify.com/v1/me/player/previous', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${r.accessToken}`,
+        }
+      })
+      .then(() => setTimeout(resolve, 1000)) // api don't update its data immedietly
+      .catch(error => {
+        console.error('Error fetching data:', error);
+        reject(error);
+      });
+    });
+  });
+}
+
+function handleNextButton() {
+  const button = document.getElementById('nextButton');
+  button.addEventListener('click', async () => {
+    nextSong()
+    .then(() =>  getPlaybackState())
+    .then((res) => handleSongData(res));
+  });
+}
+
+function nextSong() {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(['accessToken'], (r) => {
+      fetch('https://api.spotify.com/v1/me/player/next', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${r.accessToken}`,
+        }
+      })
+     .then(() => setTimeout(resolve, 1000)) // api don't update its data immedietly
+      .catch(error => {
+        console.error('Error fetching data:', error);
+        reject(error);
+      });
+    });
+  });
+}
+
+function handlePausePlayButton() {
+  const button = document.getElementById('pausePlayButton');
+  button.addEventListener('click', async() => {
+    try {
+      const playbackState = await getPlaybackState();
+      playbackState.isPlaying ? pause() : play();
+    } catch (error) {
+      console.error('Error in handlePausePlayButton():', error);
+    }
+  });
+}
+
+function pause() {
+  chrome.storage.local.get(['accessToken'], (r) => {
+    fetch('https://api.spotify.com/v1/me/player/pause', {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${r.accessToken}`,
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching data:', error);
+    });
+  });
+}
+
+function play() {
+  chrome.storage.local.get(['accessToken'], (r) => {
+    fetch('https://api.spotify.com/v1/me/player/play', {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${r.accessToken}`,
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching data:', error);
+    });
+  });
+}
+
+function getPlaybackState() {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(['accessToken'], (r) => {
+      fetch('https://api.spotify.com/v1/me/player', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${r.accessToken}`,
         }
       })
-      .then(response => response.json()) // Parse the response as JSON
-      .then(data => {
-        console.log(data); // Use the data from the response
+     .then(response => response.json())
+     .then(data => {
+        resolve({
+          isPlaying: data.is_playing,
+          title: data.item.name,
+          author: data.item.artists[0].name,
+        });
       })
-      .catch(error => {
-        console.error('Error fetching data:', error); // Handle any errors
+     .catch(error => {
+        console.error('Error fetching data:', error);
+        reject(error);
       });
     });
-  });
-    
+  });  
 }
 
 function displayToggleNoneFlex(id) {
