@@ -6,20 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <!--    <link href="popup.css" type="text/css">-->
-    <style>
-        @keyframes scroll {
-            0% {
-                transform: translateX(100%);
-            }
-            100% {
-                transform: translateX(-100%);
-            }
-        }
-        .animate-scroll {
-            animation: scroll 10s cubic-bezier(0.1,.75,0.9,.35) infinite;
-        }
-    </style>
+    <link href="popup.css" rel="stylesheet" type="text/css">
+
+
 </head>
 <body style="width: 300px;" class="bg-gray-900 text-white font-sans min-h-[500px] items-center justify-center p-4">
 
@@ -97,7 +86,8 @@
     <!-- Volume -->
     <div id="volume" class="flex items-center justify-between gap-3 text-sm text-gray-300">
         <input type="range" min="0" max="100" id="volume-slider"
-               class="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-green-500">
+               class="volume-slider w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+
         <i class="fas fa-volume-up text-lg"></i>
     </div>
 

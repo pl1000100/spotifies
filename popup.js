@@ -1,6 +1,10 @@
 document.addEventListener('DOMContentLoaded', async () => {
     handleButtons();
+    handleVolumeSlider();
+
     await checkLoginStatus();
+    await updatePlaybackState();
+
     setInterval(handleTime, 1000);
     setInterval(updatePlaybackState, 5000);
 });
@@ -28,11 +32,13 @@ async function handleTime() {
 
 async function checkLoginStatus() {
     chrome.runtime.sendMessage({ action: 'checkLoginStatus' }, (response) => {
-        if (response.data.displayName) {
+        if (response.error) {
+            console.error('Failed to check login status:', response.error);
+            showView('login');
+        } else {
+            updateLoginStatus(response.data.displayName);
             showView('player');
             updatePlaybackState();
-        } else {
-            showView('login');
         }
     });
 
@@ -53,6 +59,20 @@ function showView(view) {
     }
 }
 
+function handleVolumeSlider(){
+    const volumeSlider = document.getElementById('volume-slider');
+
+    volumeSlider.addEventListener('mouseup', () => {
+        chrome.runtime.sendMessage({ action: 'changeVolume', volume: volumeSlider.value },
+            (response) => {
+                if (response.error) {
+                    console.error('Failed to change volume:', response.error);
+                }
+            }
+        );
+    });
+}
+
 function handleButtons() {
     const buttons = [
         {id: 'login-btn', onClickFunc: login},
@@ -60,12 +80,34 @@ function handleButtons() {
         {id: 'pause-btn', onClickFunc: pauseTrack},
         {id: 'previous-btn', onClickFunc: previousTrack},
         {id: 'next-btn', onClickFunc: nextTrack},
-        {id: 'settings', onClickFunc: logout}
+        {id: 'settings', onClickFunc: logout},
+        {id: 'repeat-btn', onClickFunc: toggleRepeat},
     ]
 
     for (const button of buttons) {
         const buttonElement = document.getElementById(button.id);
         buttonElement.addEventListener('click', button.onClickFunc);
+    }
+}
+
+function toggleRepeat() {
+    const repeatButton = document.getElementById('repeat-btn');
+
+    if (repeatButton.classList.contains("text-white")) {
+        chrome.runtime.sendMessage({ action: 'toggleRepeat', type: 'track' }, (response) => {
+            repeatButton.classList.remove("text-white");
+            repeatButton.classList.add("text-red-500");
+        });
+    } else if ( repeatButton.classList.contains("text-red-500")) {
+        chrome.runtime.sendMessage({ action: 'toggleRepeat', type: 'off' }, (response) => {
+            repeatButton.classList.remove("text-white");
+            repeatButton.classList.remove("text-red-500");
+        });
+    } else {
+        chrome.runtime.sendMessage({ action: 'toggleRepeat', type: 'context' }, (response) => {
+            repeatButton.classList.add("text-white");
+            repeatButton.classList.remove("text-red-500");
+        });
     }
 }
 
@@ -81,6 +123,7 @@ function login() {
 
 function logout() {
     chrome.runtime.sendMessage({ action: 'logout' }, (response) => {
+        console.log('Logout response:', response);
         if (response.data) {
             showView('login');
         } else {
@@ -92,14 +135,14 @@ function logout() {
 function previousTrack() {
     chrome.runtime.sendMessage({ action: 'previousTrack' }, (response) => {
         console.log('Previous track response:', response);
-        setTimeout(updatePlaybackState, 500);
+        setTimeout(updatePlaybackState, 800);
     })
 }
 
 function nextTrack() {
     chrome.runtime.sendMessage({ action: 'nextTrack' }, (response) => {
         console.log('Next track response:', response);
-        setTimeout(() => {updatePlaybackState()}, 500);
+        setTimeout(updatePlaybackState, 800);
     })
 }
 
@@ -159,14 +202,30 @@ function formatTimeReverse(str) {
 }
 
 function updateProgressBar(data) {
-
-
-    const progressBar = document.getElementById('progress-bar');
     const currentTime = document.getElementById('current-time');
     const duration = document.getElementById('duration');
 
     currentTime.textContent = formatTime(data.progress_ms);
     duration.textContent = formatTime(data.item.duration_ms);
+}
+
+function updateVolume(volume) {
+    const volumeSlider = document.getElementById('volume-slider');
+    volumeSlider.value = volume;
+}
+
+function updateRepeatButton(repeatMode) {
+    const repeatButton = document.getElementById('repeat-btn');
+    if (repeatMode === 'context') {
+        repeatButton.classList.remove("text-red-500");
+        repeatButton.classList.add("text-white");
+    } else if (repeatMode === 'track') {
+        repeatButton.classList.remove("text-white");
+        repeatButton.classList.add("text-red-500");
+    } else {
+        repeatButton.classList.remove("text-red-500");
+        repeatButton.classList.remove("text-white");
+    }
 }
 
 async function updatePlaybackState(isPlaying = null) {
@@ -175,10 +234,18 @@ async function updatePlaybackState(isPlaying = null) {
     }
     try {
         const resp = await chrome.runtime.sendMessage({action: 'playbackState'});
+        if (resp.logged_out) {
+            logout();
+        }
         console.log('PlaybackState response:', resp);
+        // TO-DO: something if is or not playing
+
         updatePausePlayButton(resp.data.is_playing);
         updateSongInfo(resp.data.item);
         updateProgressBar(resp.data);
+        updateVolume(resp.data.device.volume_percent);
+        updateRepeatButton(resp.data.repeat_mode);
+
     } catch (error) {
         console.error('Failed to get playback state:', error);
     }

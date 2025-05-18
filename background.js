@@ -197,6 +197,54 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 }
                 break;
 
+            case 'toggleRepeat':
+                switch (message.type) {
+                    case 'off':
+                        try {
+                            const data = await s.setRepeat('off');
+                            sendResponse({ data });
+                        } catch (error) {
+                            console.error('Failed to set repeat off', error);
+                            sendResponse({ error });
+                        }
+                        break;
+
+                    case 'track':
+                        try {
+                            const data = await s.setRepeat('track');
+                            sendResponse({ data });
+                        } catch (error) {
+                            console.error('Failed to set repeat track', error);
+                            sendResponse({ error });
+                        }
+                        break;
+
+                    case 'context':
+                        try {
+                            const data = await s.setRepeat('context');
+                            sendResponse({ data });
+                        } catch (error) {
+                            console.error('Failed to set repeat context', error);
+                            sendResponse({ error });
+                        }
+                        break;
+
+                    default:
+                        console.error('This repeat type doesn\'t exist:', message.type);
+                }
+
+                break;
+
+            case 'changeVolume':
+                try {
+                    const data = await s.changeVolume(message.volume);
+                    sendResponse({ data });
+                } catch (error) {
+                    console.error('Failed to change volume', error);
+                    sendResponse({ error });
+                }
+                break;
+
             default:
                 console.error('This task type doesn\'t exist:', message.action);
                 sendResponse({ error: 'Wrong task type' });
@@ -268,6 +316,16 @@ class SpotifyApi {
             }
             if (response.status === 204) {
                 return {
+
+                    is_playing: false,
+                    progress_ms: 0,
+                    item: null
+                };
+            }
+            if (response.status === 401) {
+                await chrome.storage.local.remove(['codeVerifier', 'accessToken']);
+                return {
+                    logged_out: true,
                     is_playing: false,
                     progress_ms: 0,
                     item: null
@@ -371,6 +429,47 @@ class SpotifyApi {
             if (response.ok) {
                 return {
                     success: true
+                };
+            } else {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async changeVolume(volume) {
+        try {
+            const response = await fetch(`https://api.spotify.com/v1/me/player/volume?volume_percent=${volume}`, {
+                method: "PUT",
+                headers: {
+                    "Authorization": `Bearer ${this.accessToken}`
+                }
+            });
+            if (response.ok) {
+                return {
+                    success: true
+                };
+            } else {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async setRepeat(type) {
+        try {
+            const response = await fetch(`https://api.spotify.com/v1/me/player/repeat?state=${type}`, {
+                method: "PUT",
+                headers: {
+                    "Authorization": `Bearer ${this.accessToken}`
+                }
+            });
+            if (response.ok) {
+                return {
+                    success: true,
+                    state: type
                 };
             } else {
                 throw new Error(`HTTP error! status: ${response.status}`);

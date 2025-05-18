@@ -11,5 +11,43 @@ body {
     }
 }
 .animate-scroll {
-    animation: scroll 10s cubic-bezier(0.1,.85,0.9,.35) infinite;
+    animation: scroll 10s cubic-bezier(0.1,.75,0.9,.25) infinite;
+}
+
+input[type="range"].volume-slider {
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+/* WebKit */
+input[type="range"].volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 9999px;
+    background-color: rgba(16, 185, 129, 1);
+    cursor: pointer;
+    margin-top: -7px;
+}
+
+input[type="range"].volume-slider::-webkit-slider-runnable-track {
+    height: 4px;
+    background-color: #4B5563;
+    border-radius: 9999px;
+}
+
+/* Firefox */
+input[type="range"].volume-slider::-moz-range-thumb {
+    height: 16px;
+    width: 16px;
+    border-radius: 9999px;
+    background-color: rgba(16, 185, 129, 1);
+    cursor: pointer;
+}
+
+input[type="range"].volume-slider::-moz-range-track {
+    height: 4px;
+    background-color: #4B5563;
+    border-radius: 9999px;
 }
