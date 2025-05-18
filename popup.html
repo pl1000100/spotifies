@@ -1,42 +1,109 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Popup</title>
-    <link rel="stylesheet" href="styles.css">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spotifies</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  </head>
-  <body class="bg-gray-900">
-    <div id="top">
-      <h1 class="text-white text-lg font-bold mb-2">Spotifies</h1>
-      <button id="settingsButton" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full">Settings</button>
-    </div>
-    <div id="settings" class="space-y-3">
-      <label class="block text-white font-medium mb-1">Client ID</label>
-      <input type="text" id="clientId" class="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
-      <label class="block text-white font-medium mb-1">Redirect URL</label>
-      <input type="text" id="redirectUrl" class="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
-      <button id="saveButton" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full">
-        Save
-      </button>
-      <button id="loginButton" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full">Login spotify</button>
-    </div>
-    <div id="player">
-      <h2 id="songTitle" class="text-white font-bold mb-2">Title</h2>
-      <h3 id="songAuthor" class="block text-white font-medium mb-1">Author</h3>
-      <div id="playerButtons">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <!--    <link href="popup.css" type="text/css">-->
+    <style>
+        @keyframes scroll {
+            0% {
+                transform: translateX(100%);
+            }
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+        .animate-scroll {
+            animation: scroll 10s cubic-bezier(0.1,.75,0.9,.35) infinite;
+        }
+    </style>
+</head>
+<body style="width: 300px;" class="bg-gray-900 text-white font-sans min-h-[500px] items-center justify-center p-4">
 
-        <button id="prevButton">
-          <img src="assets/next.png" alt="Prev" width="24" height="24" style="transform: scaleX(-1);">
+<!-- LOGIN -->
+<div id="login" class="w-full max-w-sm bg-gray-800 p-6 rounded-xl shadow-xl text-center space-y-6 hidden">
+    <h1 class="text-3xl font-extrabold tracking-wide text-green-400">Spotifies</h1>
+    <button id="login-btn"
+            class="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-full transition duration-200 text-lg shadow-md">
+        <i class="fab fa-spotify mr-2"></i>Login with Spotify
+    </button>
+</div>
+
+
+<!-- PLAYER -->
+<div id="player" class="w-[360px] min-w-[360px] bg-gray-800 rounded-2xl shadow-2xl p-6 space-y-6">
+
+    <!-- Header -->
+    <div id="header" class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <img src="assets/icons/icon128-notext.png" alt="Logo" class="w-10 h-10 rounded-md">
+            <h1 class="text-2xl font-bold text-green-400 whitespace-nowrap">Spotifies</h1>
+        </div>
+
+        <button id="settings" class="text-gray-400 hover:text-white text-xl">
+            <i class="fas fa-cog"></i>
         </button>
-        <button id="pausePlayButton">
-          <img src="assets/play.png" alt="PausePlay" width="24" height="24">
-        </button>
-        <button id="nextButton">
-          <img src="assets/next.png" alt="Next" width="24" height="24">
-        </button>
-      </div>
     </div>
-    <script src="popup.js"></script>
-  </body>
+
+    <!-- Song Info -->
+    <div id="song-info" class="text-center space-y-2">
+        <img id="album-art" src="" alt="song-image"
+             class="w-48 h-48 mx-auto rounded-lg shadow-md object-cover bg-gray-700">
+
+        <div class="overflow-hidden whitespace-nowrap w-full">
+            <div id="scroll-text" class="inline-block animate-scroll text-lg font-medium">
+                <span id="song-title" class="mr-2">Title</span>
+                <span class="mr-2"> - </span>
+                <span id="song-artist" class="text-gray-400">Artist</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div id="progress-bar" class="space-y-1">
+        <div class="w-full h-2 bg-gray-600 rounded-full overflow-hidden">
+            <div id="progress-bar-fll" class="h-full bg-green-500 transition-all duration-300" style="width: 50%;"></div>
+        </div>
+        <div id="progress-bar-desc" class="flex justify-between text-xs text-gray-400">
+            <span id="current-time">0:00</span>
+            <span id="duration">3:45</span>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div id="controls" class="flex items-center justify-around text-2xl text-gray-300">
+        <button id="playlist-btn" class="hover:text-white transition"><i class="fas fa-list"></i></button>
+        <button id="previous-btn" class="hover:text-white transition"><i class="fas fa-step-backward"></i></button>
+
+        <!-- Play Button -->
+        <button id="play-btn"
+                class="w-12 h-12 flex items-center justify-center text-white bg-green-500 rounded-full shadow-lg transition transform hover:scale-105">
+            <i class="fas fa-play"></i>
+        </button>
+
+        <!-- Pause Button -->
+        <button id="pause-btn"
+                class="w-12 h-12 flex items-center justify-center text-white bg-red-500 rounded-full shadow-lg transition transform hover:scale-105 hidden">
+            <i class="fas fa-pause"></i>
+        </button>
+
+        <button id="next-btn" class="hover:text-white transition"><i class="fas fa-step-forward"></i></button>
+        <button id="repeat-btn" class="hover:text-white transition"><i class="fas fa-redo-alt"></i></button>
+    </div>
+
+    <!-- Volume -->
+    <div id="volume" class="flex items-center justify-between gap-3 text-sm text-gray-300">
+        <input type="range" min="0" max="100" id="volume-slider"
+               class="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-green-500">
+        <i class="fas fa-volume-up text-lg"></i>
+    </div>
+
+</div>
+
+<script src="config.js"></script>
+<script type="module" src="popup.js"></script>
+</body>
 </html>
-
