@@ -1,9 +1,30 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    handleButtons()
-    await checkLoginStatus()
-
-
+    handleButtons();
+    await checkLoginStatus();
+    setInterval(handleTime, 1000);
+    setInterval(updatePlaybackState, 5000);
 });
+
+async function handleTime() {
+    const playButton = document.getElementById('play-btn');
+
+    if (playButton.style.display === 'none') {
+        const currentTimeDisplay = document.getElementById('current-time');
+        const durationDisplay = document.getElementById('duration');
+        const progressBarDisplay = document.getElementById('progress-bar');
+
+        const currentTimeMS = formatTimeReverse(currentTimeDisplay)
+        const durationMS = formatTimeReverse(durationDisplay)
+        const progressBarProgress = (currentTimeMS / durationMS) * 100;
+
+        progressBarDisplay.style.width = `${progressBarProgress}%`;
+
+        currentTimeDisplay.textContent = formatTime(currentTimeMS + 1000);
+        if (currentTimeMS > durationMS) {
+            await updatePlaybackState()
+        }
+    }
+}
 
 async function checkLoginStatus() {
     chrome.runtime.sendMessage({ action: 'checkLoginStatus' }, (response) => {
@@ -124,21 +145,41 @@ function updateSongInfo(item) {
     artist.textContent = people;
     albumArt.src = item.album.images[0].url;
 }
-async function updatePlaybackState(isPlaying=null) {
+
+function formatTime(ms) {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = ((ms % 60000) / 1000).toFixed(0);
+    return `${minutes}:${seconds < 10? '0' : ''}${seconds}`;
+}
+
+function formatTimeReverse(str) {
+    const minutes = str.textContent.split(':')[0];
+    const seconds = str.textContent.split(':')[1];
+    return parseInt(minutes) * 60000 + parseInt(seconds) * 1000;
+}
+
+function updateProgressBar(data) {
+
+
+    const progressBar = document.getElementById('progress-bar');
+    const currentTime = document.getElementById('current-time');
+    const duration = document.getElementById('duration');
+
+    currentTime.textContent = formatTime(data.progress_ms);
+    duration.textContent = formatTime(data.item.duration_ms);
+}
+
+async function updatePlaybackState(isPlaying = null) {
     if (isPlaying === true || isPlaying === false) {
         updatePausePlayButton(isPlaying);
-    } else {
-        try {
-            const resp = await chrome.runtime.sendMessage({ action: 'playbackState' });
-            updatePausePlayButton(resp.data.isPlaying);
-            updateSongInfo(resp.data.item);
-        } catch (error) {
-            console.error('Failed to get playback state:', error);
-            return;
-        }
-
     }
-
-
-
+    try {
+        const resp = await chrome.runtime.sendMessage({action: 'playbackState'});
+        console.log('PlaybackState response:', resp);
+        updatePausePlayButton(resp.data.is_playing);
+        updateSongInfo(resp.data.item);
+        updateProgressBar(resp.data);
+    } catch (error) {
+        console.error('Failed to get playback state:', error);
+    }
 }

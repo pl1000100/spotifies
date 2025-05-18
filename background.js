@@ -264,17 +264,12 @@ class SpotifyApi {
         try {
             const response = await fetch(`https://api.spotify.com/v1/me/player?access_token=${this.accessToken}`);
             if (response.status === 200) {
-                const resp = await response.json();
-                return {
-                    isPlaying: resp.is_playing,
-                    progressMS: resp.progress_ms,
-                    item: resp.item
-                };
+                return await response.json();
             }
             if (response.status === 204) {
                 return {
-                    isPlaying: false,
-                    progressMS: 0,
+                    is_playing: false,
+                    progress_ms: 0,
                     item: null
                 };
             }
