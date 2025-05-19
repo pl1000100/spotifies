@@ -17,8 +17,8 @@ async function handleTime() {
         const durationDisplay = document.getElementById('duration');
         const progressBarDisplay = document.getElementById('progress-bar');
 
-        const currentTimeMS = formatTimeReverse(currentTimeDisplay)
-        const durationMS = formatTimeReverse(durationDisplay)
+        const currentTimeMS = formatTimeReverse(currentTimeDisplay.textContent)
+        const durationMS = formatTimeReverse(durationDisplay.textContent)
         const progressBarProgress = (currentTimeMS / durationMS) * 100;
 
         progressBarDisplay.style.width = `${progressBarProgress}%`;
@@ -36,7 +36,6 @@ async function checkLoginStatus() {
             console.error('Failed to check login status:', response.error);
             showView('login');
         } else {
-            updateLoginStatus(response.data.displayName);
             showView('player');
             updatePlaybackState();
         }
@@ -123,7 +122,6 @@ function login() {
 
 function logout() {
     chrome.runtime.sendMessage({ action: 'logout' }, (response) => {
-        console.log('Logout response:', response);
         if (response.data) {
             showView('login');
         } else {
@@ -134,21 +132,18 @@ function logout() {
 
 function previousTrack() {
     chrome.runtime.sendMessage({ action: 'previousTrack' }, (response) => {
-        console.log('Previous track response:', response);
         setTimeout(updatePlaybackState, 800);
     })
 }
 
 function nextTrack() {
     chrome.runtime.sendMessage({ action: 'nextTrack' }, (response) => {
-        console.log('Next track response:', response);
         setTimeout(updatePlaybackState, 800);
     })
 }
 
 function playTrack() {
     chrome.runtime.sendMessage({ action: 'playTrack' }, (response) => {
-        console.log('Play response:', response);
         if (response.data.success) {
             updatePlaybackState(true)
         }
@@ -157,7 +152,6 @@ function playTrack() {
 
 function pauseTrack() {
     chrome.runtime.sendMessage({ action: 'pauseTrack' }, (response) => {
-        console.log('Pause response:', response);
         if (response.data.success) {
             updatePlaybackState(false)
         }
@@ -167,7 +161,6 @@ function pauseTrack() {
 function updatePausePlayButton(isPlaying) {
     const pauseButton = document.getElementById('pause-btn');
     const playButton = document.getElementById('play-btn');
-    console.log('PlaybackState response2:', isPlaying);
     if (isPlaying) {
         pauseButton.style.display = 'block';
         playButton.style.display = 'none';
@@ -196,8 +189,8 @@ function formatTime(ms) {
 }
 
 function formatTimeReverse(str) {
-    const minutes = str.textContent.split(':')[0];
-    const seconds = str.textContent.split(':')[1];
+    const minutes = str.split(':')[0];
+    const seconds = str.split(':')[1];
     return parseInt(minutes) * 60000 + parseInt(seconds) * 1000;
 }
 
@@ -237,14 +230,13 @@ async function updatePlaybackState(isPlaying = null) {
         if (resp.logged_out) {
             logout();
         }
-        console.log('PlaybackState response:', resp);
         // TO-DO: something if is or not playing
 
         updatePausePlayButton(resp.data.is_playing);
         updateSongInfo(resp.data.item);
         updateProgressBar(resp.data);
         updateVolume(resp.data.device.volume_percent);
-        updateRepeatButton(resp.data.repeat_mode);
+        updateRepeatButton(resp.data.repeat_state);
 
     } catch (error) {
         console.error('Failed to get playback state:', error);

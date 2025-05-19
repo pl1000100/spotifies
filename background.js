@@ -100,9 +100,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         async function reauth() {
             await s.reauthenticate();
             await chrome.storage.local.set({ accessToken: s.getAccessToken(), codeVerifier: s.getCodeVerifier() });
-            console.log('Reauthenticated successfully');
-            console.log('Reauthenticated verifier:', s.getCodeVerifier());
-            console.log('Reauthenticated token:', s.getAccessToken());
         }
 
         switch (message.action) {
@@ -259,9 +256,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 async function reauth(s) {
     await s.reauthenticate()
     await chrome.storage.local.set({ accessToken: s.getAccessToken(), codeVerifier: s.getCodeVerifier() });
-    console.log('Reauthenticated successfully');
-    console.log('2Code verifier:', s.getCodeVerifier());
-    console.log('2Access token:', s.getAccessToken());
     return s;
 }
 
@@ -302,9 +296,6 @@ class SpotifyApi {
         const data = await getNewLoginData(this.clientId, this.redirectUri, this.scope);
         this.codeVerifier = data.codeVerifier;
         this.accessToken = data.accessToken;
-        console.log('Reauthenticated with new access token');
-        console.log('New access token:', this.accessToken);
-        console.log('New code verifier:', this.codeVerifier);
         return data;
     }
 
