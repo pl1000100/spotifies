@@ -242,6 +242,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 }
                 break;
 
+            case 'setPlayTime':
+                try {
+                    const data = await s.setPlayTime(message.mSeconds);
+                    sendResponse({ data });
+                } catch (error) {
+                    console.error('Failed to set play time', error);
+                    sendResponse({ error });
+                }
+                break;
+
             default:
                 console.error('This task type doesn\'t exist:', message.action);
                 sendResponse({ error: 'Wrong task type' });
@@ -468,5 +478,28 @@ class SpotifyApi {
         } catch (error) {
             throw error;
         }
+    }
+
+    async setPlayTime(mSeconds) {
+        try {
+            const response = await fetch(`https://api.spotify.com/v1/me/player/seek?position_ms=${mSeconds}`, {
+                method: "PUT",
+                headers: {
+                    "Authorization": `Bearer ${this.accessToken}`,
+
+                }
+            });
+            if (response.ok) {
+                return {
+                    success: true
+                };
+            } else {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+        } catch (error) {
+            throw error;
+        }
+
+
     }
 }

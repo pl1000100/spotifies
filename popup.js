@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
     handleButtons();
     handleVolumeSlider();
+    handlePlaybar();
 
     await checkLoginStatus();
     await updatePlaybackState();
@@ -8,6 +9,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     setInterval(handleTime, 1000);
     setInterval(updatePlaybackState, 5000);
 });
+
+function handlePlaybar() {
+    const playbar = document.getElementById('progress-container');
+    const progressBar = document.getElementById('progress-bar');
+    const durationTime = document.getElementById('duration')
+    const currentTimeDisplay = document.getElementById('current-time');
+        playbar.addEventListener('mouseup', async (e) => {
+            const container = e.currentTarget;
+            const rect = container.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const percentage = clickX / rect.width;
+            const durationMS = formatTimeReverse(durationTime.textContent);
+            const mSeconds = Math.floor(percentage * durationMS);
+
+            chrome.runtime.sendMessage({ action: 'setPlayTime', mSeconds }, (response) => {
+                if (response.error) {
+                    console.error('Failed to setPlayTime:', response.error);
+                } else {
+                    currentTimeDisplay.textContent = formatTime(mSeconds);
+                    progressBar.style.width = `${percentage}%`;
+                }
+            });
+
+    });
+}
 
 async function handleTime() {
     const playButton = document.getElementById('play-btn');
