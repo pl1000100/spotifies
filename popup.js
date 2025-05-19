@@ -15,22 +15,22 @@ function handlePlaybar() {
     const progressBar = document.getElementById('progress-bar');
     const durationTime = document.getElementById('duration')
     const currentTimeDisplay = document.getElementById('current-time');
-        playbar.addEventListener('mouseup', async (e) => {
-            const container = e.currentTarget;
-            const rect = container.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const percentage = clickX / rect.width;
-            const durationMS = formatTimeReverse(durationTime.textContent);
-            const mSeconds = Math.floor(percentage * durationMS);
+    playbar.addEventListener('mouseup', async (e) => {
+        const container = e.currentTarget;
+        const rect = container.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const percentage = clickX / rect.width;
+        const durationMS = formatTimeReverse(durationTime.textContent);
+        const mSeconds = Math.floor(percentage * durationMS);
 
-            chrome.runtime.sendMessage({ action: 'setPlayTime', mSeconds }, (response) => {
-                if (response.error) {
-                    console.error('Failed to setPlayTime:', response.error);
-                } else {
-                    currentTimeDisplay.textContent = formatTime(mSeconds);
-                    progressBar.style.width = `${percentage}%`;
-                }
-            });
+        chrome.runtime.sendMessage({action: 'setPlayTime', mSeconds}, (response) => {
+            if (response.error) {
+                console.error('Failed to setPlayTime:', response.error);
+            } else {
+                currentTimeDisplay.textContent = formatTime(mSeconds);
+                progressBar.style.width = `${percentage}%`;
+            }
+        });
 
     });
 }
@@ -57,7 +57,7 @@ async function handleTime() {
 }
 
 async function checkLoginStatus() {
-    chrome.runtime.sendMessage({ action: 'checkLoginStatus' }, (response) => {
+    chrome.runtime.sendMessage({action: 'checkLoginStatus'}, (response) => {
         if (response.error) {
             console.error('Failed to check login status:', response.error);
             showView('login');
@@ -84,11 +84,11 @@ function showView(view) {
     }
 }
 
-function handleVolumeSlider(){
+function handleVolumeSlider() {
     const volumeSlider = document.getElementById('volume-slider');
 
     volumeSlider.addEventListener('mouseup', () => {
-        chrome.runtime.sendMessage({ action: 'changeVolume', volume: volumeSlider.value },
+        chrome.runtime.sendMessage({action: 'changeVolume', volume: volumeSlider.value},
             (response) => {
                 if (response.error) {
                     console.error('Failed to change volume:', response.error);
@@ -119,17 +119,17 @@ function toggleRepeat() {
     const repeatButton = document.getElementById('repeat-btn');
 
     if (repeatButton.classList.contains("text-white")) {
-        chrome.runtime.sendMessage({ action: 'toggleRepeat', type: 'track' }, (response) => {
+        chrome.runtime.sendMessage({action: 'toggleRepeat', type: 'track'}, (response) => {
             repeatButton.classList.remove("text-white");
             repeatButton.classList.add("text-red-500");
         });
-    } else if ( repeatButton.classList.contains("text-red-500")) {
-        chrome.runtime.sendMessage({ action: 'toggleRepeat', type: 'off' }, (response) => {
+    } else if (repeatButton.classList.contains("text-red-500")) {
+        chrome.runtime.sendMessage({action: 'toggleRepeat', type: 'off'}, (response) => {
             repeatButton.classList.remove("text-white");
             repeatButton.classList.remove("text-red-500");
         });
     } else {
-        chrome.runtime.sendMessage({ action: 'toggleRepeat', type: 'context' }, (response) => {
+        chrome.runtime.sendMessage({action: 'toggleRepeat', type: 'context'}, (response) => {
             repeatButton.classList.add("text-white");
             repeatButton.classList.remove("text-red-500");
         });
@@ -137,7 +137,7 @@ function toggleRepeat() {
 }
 
 function login() {
-    chrome.runtime.sendMessage({ action: 'login' }, (response) => {
+    chrome.runtime.sendMessage({action: 'login'}, (response) => {
         if (response.data.displayName) {
             showView('player');
         } else {
@@ -147,7 +147,7 @@ function login() {
 }
 
 function logout() {
-    chrome.runtime.sendMessage({ action: 'logout' }, (response) => {
+    chrome.runtime.sendMessage({action: 'logout'}, (response) => {
         if (response.data) {
             showView('login');
         } else {
@@ -157,19 +157,19 @@ function logout() {
 }
 
 function previousTrack() {
-    chrome.runtime.sendMessage({ action: 'previousTrack' }, (response) => {
+    chrome.runtime.sendMessage({action: 'previousTrack'}, (response) => {
         setTimeout(updatePlaybackState, 800);
     })
 }
 
 function nextTrack() {
-    chrome.runtime.sendMessage({ action: 'nextTrack' }, (response) => {
+    chrome.runtime.sendMessage({action: 'nextTrack'}, (response) => {
         setTimeout(updatePlaybackState, 800);
     })
 }
 
 function playTrack() {
-    chrome.runtime.sendMessage({ action: 'playTrack' }, (response) => {
+    chrome.runtime.sendMessage({action: 'playTrack'}, (response) => {
         if (response.data.success) {
             updatePlaybackState(true)
         }
@@ -177,7 +177,7 @@ function playTrack() {
 }
 
 function pauseTrack() {
-    chrome.runtime.sendMessage({ action: 'pauseTrack' }, (response) => {
+    chrome.runtime.sendMessage({action: 'pauseTrack'}, (response) => {
         if (response.data.success) {
             updatePlaybackState(false)
         }
@@ -211,7 +211,7 @@ function updateSongInfo(item) {
 function formatTime(ms) {
     const minutes = Math.floor(ms / 60000);
     const seconds = ((ms % 60000) / 1000).toFixed(0);
-    return `${minutes}:${seconds < 10? '0' : ''}${seconds}`;
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 }
 
 function formatTimeReverse(str) {

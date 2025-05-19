@@ -99,17 +99,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
         async function reauth() {
             await s.reauthenticate();
-            await chrome.storage.local.set({ accessToken: s.getAccessToken(), codeVerifier: s.getCodeVerifier() });
+            await chrome.storage.local.set({accessToken: s.getAccessToken(), codeVerifier: s.getCodeVerifier()});
         }
 
         switch (message.action) {
             case 'checkLoginStatus':
                 try {
                     const data = await s.getMe();
-                    sendResponse({ data });
+                    sendResponse({data});
                 } catch (error) {
                     console.error('Failed to get user data', error);
-                    sendResponse({ error });
+                    sendResponse({error});
                 }
                 break;
 
@@ -117,80 +117,80 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 try {
                     await reauth();
                     const data = await s.getMe();
-                    sendResponse({ data });
+                    sendResponse({data});
                 } catch (error) {
                     console.error('Failed to reauthenticate', error);
-                    sendResponse({ error });
+                    sendResponse({error});
                 }
                 break;
 
             case 'logout':
                 try {
                     await chrome.storage.local.remove(['codeVerifier', 'accessToken']);
-                    sendResponse({ data : 'Logged out' });
+                    sendResponse({data: 'Logged out'});
                 } catch (error) {
                     console.error('Failed to logout', error);
-                    sendResponse({ error });
+                    sendResponse({error});
                 }
                 break;
 
             case 'me':
                 try {
                     const data = await s.getMe();
-                    sendResponse({ data });
+                    sendResponse({data});
                 } catch (error) {
                     console.error('Failed to get user data', error);
-                    sendResponse({ error });
+                    sendResponse({error});
                 }
                 break;
 
             case 'playbackState':
                 try {
                     const data = await s.getPlaybackState();
-                    sendResponse({ data });
+                    sendResponse({data});
                 } catch (error) {
                     console.error('Failed to get playback state', error);
-                    sendResponse({ error });
+                    sendResponse({error});
                 }
                 break;
 
             case'previousTrack':
                 try {
                     const data = await s.previousTrack();
-                    sendResponse({ data });
+                    sendResponse({data});
                 } catch (error) {
                     console.error('Failed to get previousTrack', error);
-                    sendResponse({ error });
+                    sendResponse({error});
                 }
                 break;
 
             case 'nextTrack':
                 try {
                     const data = await s.nextTrack();
-                    sendResponse({ data });
+                    sendResponse({data});
                 } catch (error) {
                     console.error('Failed to get nextTrack', error);
-                    sendResponse({ error });
+                    sendResponse({error});
                 }
                 break;
 
             case 'playTrack':
                 try {
                     const data = await s.playTrack();
-                    sendResponse({ data });
+                    sendResponse({data});
                 } catch (error) {
                     console.error('Failed to play track', error);
-                    sendResponse({ error });
+                    sendResponse({error});
                 }
                 break;
 
             case 'pauseTrack':
                 try {
                     const data = await s.pauseTrack();
-                    sendResponse({ data });
+                    sendResponse({data});
                 } catch (error) {
                     console.error('Failed to pause track', error);
-                    sendResponse({ error });
+                    sendResponse({error});
                 }
                 break;
 
@@ -199,30 +199,30 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     case 'off':
                         try {
                             const data = await s.setRepeat('off');
-                            sendResponse({ data });
+                            sendResponse({data});
                         } catch (error) {
                             console.error('Failed to set repeat off', error);
-                            sendResponse({ error });
+                            sendResponse({error});
                         }
                         break;
 
                     case 'track':
                         try {
                             const data = await s.setRepeat('track');
-                            sendResponse({ data });
+                            sendResponse({data});
                         } catch (error) {
                             console.error('Failed to set repeat track', error);
-                            sendResponse({ error });
+                            sendResponse({error});
                         }
                         break;
 
                     case 'context':
                         try {
                             const data = await s.setRepeat('context');
-                            sendResponse({ data });
+                            sendResponse({data});
                         } catch (error) {
                             console.error('Failed to set repeat context', error);
-                            sendResponse({ error });
+                            sendResponse({error});
                         }
                         break;
 
@@ -235,26 +235,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             case 'changeVolume':
                 try {
                     const data = await s.changeVolume(message.volume);
-                    sendResponse({ data });
+                    sendResponse({data});
                 } catch (error) {
                     console.error('Failed to change volume', error);
-                    sendResponse({ error });
+                    sendResponse({error});
                 }
                 break;
 
             case 'setPlayTime':
                 try {
                     const data = await s.setPlayTime(message.mSeconds);
-                    sendResponse({ data });
+                    sendResponse({data});
                 } catch (error) {
                     console.error('Failed to set play time', error);
-                    sendResponse({ error });
+                    sendResponse({error});
                 }
                 break;
 
             default:
                 console.error('This task type doesn\'t exist:', message.action);
-                sendResponse({ error: 'Wrong task type' });
+                sendResponse({error: 'Wrong task type'});
                 break;
         }
     });
@@ -265,7 +265,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 async function reauth(s) {
     await s.reauthenticate()
-    await chrome.storage.local.set({ accessToken: s.getAccessToken(), codeVerifier: s.getCodeVerifier() });
+    await chrome.storage.local.set({accessToken: s.getAccessToken(), codeVerifier: s.getCodeVerifier()});
     return s;
 }
 
@@ -282,7 +282,6 @@ async function getNewLoginData(clientId, redirectUri, scope) {
         accessToken
     };
 }
-
 
 
 class SpotifyApi {
@@ -485,8 +484,7 @@ class SpotifyApi {
             const response = await fetch(`https://api.spotify.com/v1/me/player/seek?position_ms=${mSeconds}`, {
                 method: "PUT",
                 headers: {
-                    "Authorization": `Bearer ${this.accessToken}`,
-
+                    "Authorization": `Bearer ${this.accessToken}`
                 }
             });
             if (response.ok) {
@@ -499,7 +497,5 @@ class SpotifyApi {
         } catch (error) {
             throw error;
         }
-
-
     }
 }
