@@ -252,6 +252,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 }
                 break;
 
+            case 'getNextSongs':
+                try {
+                    const data = await s.getNextSongs();
+                    sendResponse({data});
+
+                }catch (error) {
+                    console.error('Failed to get next songs', error);
+                    sendResponse({error});
+                }
+
+                break;
+
             default:
                 console.error('This task type doesn\'t exist:', message.action);
                 sendResponse({error: 'Wrong task type'});
@@ -423,7 +435,6 @@ class SpotifyApi {
                 method: "PUT",
                 headers: {
                     "Authorization": `Bearer ${this.accessToken}`
-                    // TO-DO possible starting playing track as arg
                 }
             });
             if (response.ok) {
@@ -491,6 +502,20 @@ class SpotifyApi {
                 return {
                     success: true
                 };
+            } else {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async getNextSongs(){
+        try {
+            const response = await fetch(`https://api.spotify.com/v1/me/player/queue?access_token=${this.accessToken}`)
+            if (response.ok) {
+                const resp = await response.json();
+                return resp;
             } else {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }

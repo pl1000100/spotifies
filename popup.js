@@ -31,7 +31,6 @@ function handlePlaybar() {
                 progressBar.style.width = `${percentage}%`;
             }
         });
-
     });
 }
 
@@ -66,7 +65,6 @@ async function checkLoginStatus() {
             updatePlaybackState();
         }
     });
-
 }
 
 function showView(view) {
@@ -74,10 +72,17 @@ function showView(view) {
         case 'login':
             document.getElementById('login').style.display = 'block';
             document.getElementById('player').style.display = 'none';
+            document.getElementById('song-list').style.display = 'none';
             break;
         case 'player':
             document.getElementById('login').style.display = 'none';
             document.getElementById('player').style.display = 'block';
+            document.getElementById('song-list').style.display = 'none';
+            break;
+        case 'song-list':
+            document.getElementById('login').style.display = 'none';
+            document.getElementById('player').style.display = 'none';
+            document.getElementById('song-list').style.display = 'block';
             break;
         default:
             console.error('Invalid view:', view);
@@ -98,6 +103,48 @@ function handleVolumeSlider() {
     });
 }
 
+function handlePlaylist() {
+    showView('song-list')
+    togglePlaylist();
+}
+
+async function togglePlaylist() {
+    // const songList = document.getElementById('song-list');
+    const songListItems = document.getElementById('song-list-items');
+
+    const nextSongs = await chrome.runtime.sendMessage({action: 'getNextSongs'});
+
+    console.log('Next songs:', nextSongs);
+
+    const songs = nextSongs.data.queue.map(song => ({
+        title: song.name,
+        artist: song.artists.map(arti => arti.name).join(', '),
+        uri: song.uri,
+    }));
+
+    songListItems.innerHTML = '';
+    songs.forEach((song, index) => {
+        if (index < 5) {
+            const li = document.createElement('li');
+            li.className = "flex items-center justify-between p-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition cursor-pointer";
+            li.innerHTML = `
+        <div>
+            <p class="text-sm font-medium">${song.title}</p>
+            <p class="text-xs text-gray-400">${song.artist}</p>
+        </div>
+        <i class="fas fa-play text-green-400"></i>
+    `;
+            li.querySelector('i').addEventListener('click', () => {
+                for (let j = 0; j < index + 1; j++) {
+                    nextTrack();
+                }
+                showView('player');
+            });
+            songListItems.appendChild(li);
+        }
+    });
+}
+
 function handleButtons() {
     const buttons = [
         {id: 'login-btn', onClickFunc: login},
@@ -107,12 +154,18 @@ function handleButtons() {
         {id: 'next-btn', onClickFunc: nextTrack},
         {id: 'settings', onClickFunc: logout},
         {id: 'repeat-btn', onClickFunc: toggleRepeat},
+        {id: 'playlist-btn', onClickFunc: handlePlaylist},
+        {id: 'backToPlayer-btn', onClickFunc: handleBackToPlayer},
     ]
 
     for (const button of buttons) {
         const buttonElement = document.getElementById(button.id);
         buttonElement.addEventListener('click', button.onClickFunc);
     }
+}
+
+function handleBackToPlayer() {
+    showView('player');
 }
 
 function toggleRepeat() {
@@ -256,14 +309,12 @@ async function updatePlaybackState(isPlaying = null) {
         if (resp.logged_out) {
             logout();
         }
-        // TO-DO: something if is or not playing
 
         updatePausePlayButton(resp.data.is_playing);
         updateSongInfo(resp.data.item);
         updateProgressBar(resp.data);
         updateVolume(resp.data.device.volume_percent);
         updateRepeatButton(resp.data.repeat_state);
-
     } catch (error) {
         console.error('Failed to get playback state:', error);
     }

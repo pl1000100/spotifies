@@ -7,8 +7,6 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link href="popup.css" rel="stylesheet" type="text/css">
-
-
 </head>
 <body style="width: 300px;" class="bg-gray-900 text-white font-sans min-h-[500px] items-center justify-center p-4">
 
@@ -20,7 +18,6 @@
         <i class="fab fa-spotify mr-2"></i>Login with Spotify
     </button>
 </div>
-
 
 <!-- PLAYER -->
 <div id="player" class="w-[360px] min-w-[360px] bg-gray-800 rounded-2xl shadow-2xl p-6 space-y-6">
@@ -92,6 +89,28 @@
         <i class="fas fa-volume-up text-lg"></i>
     </div>
 
+</div>
+
+<!-- Song List -->
+<div id="song-list" class="bg-gray-800 rounded-xl shadow-xl p-4 space-y-3 overflow-y-auto hidden">
+    <h2 class="text-lg font-semibold text-green-400 mb-2">Playlist</h2>
+    <ul id="song-list-items" class="space-y-2">
+        <!-- Songs will be injected here -->
+        <!-- Example Song Item -->
+        <!--
+        <li class="flex items-center justify-between p-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition cursor-pointer">
+            <div>
+                <p class="text-sm font-medium">Song Title</p>
+                <p class="text-xs text-gray-400">Artist Name</p>
+            </div>
+            <i class="fas fa-play text-green-400"></i>
+        </li>
+        -->
+    </ul>
+    <button id="backToPlayer-btn"
+            class="w-full py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full transition duration-200 text-sm shadow-md">
+        <i class="fas fa-arrow-left mr-2"></i> Back to Player
+    </button>
 </div>
 
 <script src="config.js"></script>
